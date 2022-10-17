@@ -7,9 +7,10 @@ ARG LIBSHINE_VERSION=3.1.1
 ARG LIBSHINE_URL="https://github.com/toots/shine/releases/download/$LIBSHINE_VERSION/shine-$LIBSHINE_VERSION.tar.gz"
 ARG LIBSHINE_SHA256=58e61e70128cf73f88635db495bfc17f0dde3ce9c9ac070d505a0cd75b93d384
 
-# bump: alpine /FROM alpine:([\d.]+)/ docker:alpine|^3
-# bump: alpine link "Release notes" https://alpinelinux.org/posts/Alpine-$LATEST-released.html
-FROM alpine:3.16.2 AS base
+# Must be specified
+ARG ALPINE_VERSION
+
+FROM alpine:${ALPINE_VERSION} AS base
 
 FROM base AS download
 ARG LIBSHINE_URL
@@ -31,9 +32,14 @@ COPY --from=download /tmp/libshine/ /tmp/libshine/
 WORKDIR /tmp/libshine
 RUN \
   apk add --no-cache --virtual build \
-    build-base && \
+    build-base pkgconf && \
   ./configure --with-pic --enable-static --disable-shared --disable-fast-install && \
   make -j$(nproc) install && \
+  # Sanity tests
+  pkg-config --exists --modversion --path shine && \
+  ar -t /usr/local/lib/libshine.a && \
+  readelf -h /usr/local/lib/libshine.a && \
+  # Cleanup
   apk del build
 
 FROM scratch
