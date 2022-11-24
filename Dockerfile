@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 
 # bump: LIBSHINE /LIBSHINE_VERSION=([\d.]+)/ https://github.com/toots/shine.git|*
 # bump: LIBSHINE after ./hashupdate Dockerfile LIBSHINE $LATEST
